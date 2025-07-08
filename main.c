@@ -6,110 +6,71 @@
 /*   By: hpodratc <hpodratc@student.42yerevan.am    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/02 16:43:08 by hpodratc          #+#    #+#             */
-/*   Updated: 2025/07/08 18:12:12 by hpodratc         ###   ########.fr       */
+/*   Updated: 2025/07/08 21:05:44 by hpodratc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "headers/fdf.h"
-#include "headers/get_next_line.h"
 
-void	my_mlx_pixel_put(t_data *data, int x, int y, int color);
-int		create_trgb(int t, int r, int g, int b);
-int		close_hook(t_data *data);
-int		esc_hook(int keycode, void *data);
-int		mouse_hook(int button, int x, int y, void *param);
-int		render_hook(t_data *data);
+static int	validate_file(char *filename);
 
-#define WIDTH 1280
-#define HEIGHT 720
-int	main(void)
+int	main(int argc, char *argv[])
 {
-	void	*init;
-	void	*window;
-	t_data	img;
-	t_vars	vars;
-	
-	init = mlx_init();
-	vars.mlx = init;
-	window = mlx_new_window(init, WIDTH, HEIGHT, "FDF");
-	vars.win = window;
-	img.img = mlx_new_image(init, WIDTH, HEIGHT);
-	img.addr = mlx_get_data_addr(img.img, &img.bits_per_pixel,
-			&img.line_length, &img.endian);
-	img.vars = &vars;
-	mlx_hook(vars.win, 17, 0L, close_hook, &img);
-	mlx_hook(vars.win, 2, 1L<<0, esc_hook, &img);
-	// mlx_mouse_hook(vars.win, mouse_hook, &img);
-	mlx_loop_hook(init, render_hook, &img);
-	mlx_loop(init);
+	t_map	*data;
+
+	if (argc != 2)
+		exit_error("Error: usage: ./fdf filename\n", NULL);
+	if (!validate_file(argv[1]))
+		exit_error("Error: File must have .fdf", NULL);
+	data = (t_map *)malloc(sizeof(t_map));
+	if (!data)
+		exit (1);
+	data->width = 0;
+	data->height = 0;
+	data->points = NULL;
+	read_file(argv[1], data);
+	fdf(data);
+	spare_mem(data);
 	return (0);
 }
 
-void	my_mlx_pixel_put(t_data *data, int x, int y, int color)
+int	deal_key(int key, t_map *data)
 {
-	char	*dst;
-
-	dst = data->addr + (y * data->line_length + x * (data->bits_per_pixel / 8));
-	*(unsigned int *)dst = color;
-}
-
-int	create_trgb(int t, int r, int g, int b)
-{
-	return (t << 24 | r << 16 | g << 8 | b);
-}
-
-int	close_hook(t_data *data)
-{
-	mlx_destroy_image(data->vars->mlx, data->img);
-	mlx_destroy_window(data->vars->mlx, data->vars->win);
-	mlx_destroy_display(data->vars->mlx);
-	free(data->vars->mlx); 
-	exit(0);
-}
-
-int	esc_hook(int keycode, void *data)
-{
-	t_data *mlx_data = (t_data *)data;
-	
-	if (keycode == ESC)
-	{
-		mlx_destroy_image(mlx_data->vars->mlx, mlx_data->img);
-		mlx_destroy_window(mlx_data->vars->mlx, mlx_data->vars->win);
-		mlx_destroy_display(mlx_data->vars->mlx);
-		free(mlx_data->vars->mlx); 
-		exit(0);
-	}
+	ft_putnbr_fd(key, 1);
+	ft_putendl_fd("", 1);
+	if (key == KEY_UP)
+		data->shift_y -= 10;
+	if (key == KEY_DOWN)
+		data->shift_y += 10;
+	if (key == KEY_LEFT)
+		data->shift_x -= 10;
+	if (key == KEY_RIGHT)
+		data->shift_x += 10;
+	if (key == MINUS && data->zoom > 1.0)
+		data->zoom -= 1;
+	if (key == EQUAL && data->zoom < 100)
+		data->zoom += 1;
+	if (key == KEY_A)
+		data->rotation -= 0.1;
+	if (key == KEY_D)
+		data->rotation += 0.1;
+	if (key == ESC)
+		close_window(data);
+	mlx_clear_window(data->mlx_ptr, data->win_ptr);
+	ft_bzero(data->addr, WIN_WIDTH * WIN_HEIGHT * (data->bpp / 8));
+	draw(data);
+	mlx_put_image_to_window(data->mlx_ptr, data->win_ptr, data->img_ptr, 0, 0);
 	return (0);
 }
 
-int	mouse_hook(int button, int x, int y, void *param)
+static int	validate_file(char *filename)
 {
-	printf("Button %d pressed.\n",button);
-	printf("Mouse moving, at %dx%d.\n",x,y);
-	return (0);
-	(void)param;
-}
+	char	*extension;
 
-
-int	render_hook(t_data *data)
-{
-	static int		i = -1;
-	int		trgb;
-	int		X = WIDTH / 2;
-	int		Y = HEIGHT / 2;
-
-	++i;
-	trgb = create_trgb(0, 255, 0, 255);
-	my_mlx_pixel_put(data, X + i + 1, Y, trgb);
-	mlx_put_image_to_window(data->vars->mlx, data->vars->win, data->img, 0, 0);
-	if (i == 1500)
-	{
-		mlx_destroy_image(data->vars->mlx, data->img);
-		mlx_destroy_window(data->vars->mlx, data->vars->win);
-		mlx_destroy_display(data->vars->mlx);
-		free(data->vars->mlx); 
-		mlx_loop_end(data->vars->mlx);
-	}
-	return (0);
-	(void)data;
+	if (!filename)
+		return (0);
+	extension = ft_strrchr(filename, '.');
+	if (!extension)
+		return (0);
+	return (ft_strncmp(extension, ".fdf", 4) == 0);
 }

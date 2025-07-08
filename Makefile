@@ -22,6 +22,12 @@ NAME = $(OUTPUT_DIR)/fdf
 
 SRC = main.c \
 		service/fdf.c \
+		service/draw.c \
+		service/error.c \
+		service/spare.c \
+		service/get_fill.c \
+		service/read_file.c \
+		service/transform.c \
 		service/get_next_line.c \
 
 OBJ = $(patsubst %.c, $(OBJ_DIR)/%.o, $(SRC))
