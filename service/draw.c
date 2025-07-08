@@ -12,10 +12,10 @@
 
 #include "../headers/fdf.h"
 
-static void my_mlx_pixel_put(t_map *data, int x, int y, int color);
-static void draw_line(t_map *map, t_point p1, t_point p2, float steps);
-static int  get_color(t_point p1, t_point p2);
-static void draw_dda(t_map *map, t_point p1, t_point p2);
+static void	my_mlx_pixel_put(t_map *data, int x, int y, int color);
+static void	draw_line(t_map *map, t_point p1, t_point p2, float steps);
+static int	get_color(t_point p1, t_point p2);
+static void	draw_dda(t_map *map, t_point p1, t_point p2);
 
 void	draw(t_map *map)
 {
@@ -38,7 +38,7 @@ void	draw(t_map *map)
 	}
 }
 
-static void my_mlx_pixel_put(t_map *data, int x, int y, int color)
+static void	my_mlx_pixel_put(t_map *data, int x, int y, int color)
 {
 	char	*dst;
 
@@ -49,7 +49,7 @@ static void my_mlx_pixel_put(t_map *data, int x, int y, int color)
 	}
 }
 
-static void draw_line(t_map *map, t_point p1, t_point p2, float steps)
+static void	draw_line(t_map *map, t_point p1, t_point p2, float steps)
 {
 	float	dx;
 	float	dy;
@@ -71,7 +71,7 @@ static void draw_line(t_map *map, t_point p1, t_point p2, float steps)
 	}
 }
 
-static int  get_color(t_point p1, t_point p2)
+static int	get_color(t_point p1, t_point p2)
 {
 	if (p1.color != -1)
 		return (p1.color);
@@ -85,7 +85,7 @@ static int  get_color(t_point p1, t_point p2)
 		return (0xffffff);
 }
 
-static void draw_dda(t_map *map, t_point p1, t_point p2)
+static void	draw_dda(t_map *map, t_point p1, t_point p2)
 {
 	float	dx;
 	float	dy;

@@ -13,9 +13,9 @@
 #include "../headers/fdf.h"
 #include "../headers/get_next_line.h"
 
-static int  count_width(char *str, char c);
-static void get_dimension(char *file_name, t_map *data);
-static void map_memory(t_map *data);
+static int	count_width(char *str, char c);
+static void	get_dimension(char *file_name, t_map *data);
+static void	map_memory(t_map *data);
 
 void	read_file(char *filename, t_map *data)
 {
